@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pridaj záznam</title>
+</head>
+<body>
+<h1>Pridaj záznam</h1>
+<form action="#" method="POST" th:action="@{/uloz-zaznam}" th:object="${pridajZaznam}">
+    Názov <input id="nazov" placeholder="Zadajte názov" class="form-control" th:field="*{nazov}" type="text"><br>
+    Cena <input id="cena" class="form-control" step="0.1" th:field="*{cena}" type="number"><br>
+    Farba <input id="farba" placeholder="Zadajte farbu" class="form-control" th:field="*{farba}" type="text"><br>
+    Veľkosť<input id="velkost" placeholder="Zadajte veľkosť" class="form-control" th:field="*{velkost}" type="text"><br>
+    <button type="submit" class="btn btn-primary">Ulož záznam</button>
+</form>
+<br>
+<a href="/">Prejdi na hlavnú stránku</a>
+</body>
+</html>
