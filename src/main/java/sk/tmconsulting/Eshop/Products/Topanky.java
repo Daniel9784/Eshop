@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 public class Topanky extends Produkt {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "topanky_seq")
+    @SequenceGenerator(name = "topanky_seq", sequenceName = "topanky_sequence", initialValue = 2000)
     private long produktID;
 
     public long getProduktID() {

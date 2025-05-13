@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 public class Nohavice extends Produkt {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nohavice_seq")
+    @SequenceGenerator(name = "nohavice_seq", sequenceName = "nohavice_sequence", initialValue = 3000)
     private long produktID;
 
     public long getProduktID() {

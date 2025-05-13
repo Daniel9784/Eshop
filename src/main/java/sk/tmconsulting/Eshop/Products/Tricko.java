@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 public class Tricko extends Produkt {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "tricko_seq")
+    @SequenceGenerator(name = "tricko_seq", sequenceName = "tricko_sequence", initialValue = 1000)
     private long produktID;
 
     public long getProduktID() {
