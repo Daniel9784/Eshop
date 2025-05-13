@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Pridaj záznam</title>
     <style>
-        /* Errory */
+        /* Existujúce štýly pre errory */
         .error {
             color: red;
             margin-bottom: 5px;
@@ -19,34 +19,56 @@
             border: 2px solid red;
         }
 
-       /* Centrovanie stranky*/
-body {
-    background-color: #f0f0f0;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 40px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh;
-    text-align: center;
-}
+        /* Upravené štýly pre centrovanie a zarovnanie */
+        body {
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
 
-form {
-    width: 100%;
-    max-width: 400px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #f9f9f9;
-    margin-bottom: 20px;
+        form {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
 
-}
+        .form-group {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            text-align: left;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .error {
+            grid-column: 2;
+        }
 
         button {
             margin-top: 20px;
+            width: 100%;
         }
 
         a {
@@ -65,41 +87,53 @@ form {
 <h1>Pridaj záznam</h1>
 
 <form action="#" method="POST" onsubmit="return validateForm()" th:action="@{/uloz-zaznam}" th:object="${pridajZaznam}">
-
-    Názov <input class="form-control" id="nazov" placeholder="Zadajte názov" th:field="*{nazov}" type="text">
-    <div class="error" th:if="${#fields.hasErrors('nazov')}">
-        <p th:each="err : ${#fields.errors('nazov')}" th:text="${err}"></p>
-    </div><br><br>
-
-    Cena <input class="form-control" id="cena" step="0.1" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
-    <div class="error" th:if="${#fields.hasErrors('cena')}">
-        <p th:each="err : ${#fields.errors('cena')}" th:text="${err}"></p>
-    </div><br><br>
-
-    Farba <input class="form-control" id="farba" placeholder="Zadajte farbu" th:field="*{farba}" type="text">
-    <div class="error" th:if="${#fields.hasErrors('farba')}">
-        <p th:each="err : ${#fields.errors('farba')}" th:text="${err}"></p>
-    </div><br><br>
-
-    Veľkosť <input class="form-control" id="velkost" placeholder="Zadajte veľkosť" th:field="*{velkost}" type="text">
-    <div class="error" th:if="${#fields.hasErrors('velkost')}">
-        <p th:each="err : ${#fields.errors('velkost')}" th:text="${err}"></p>
+    <div class="form-group">
+        <label for="nazov">Názov:</label>
+        <input class="form-control" id="nazov" placeholder="Zadajte názov" th:field="*{nazov}" type="text">
+        <div class="error" th:if="${#fields.hasErrors('nazov')}">
+            <p th:each="err : ${#fields.errors('nazov')}" th:text="${err}"></p>
+        </div>
     </div>
-    <br><br>
 
-    Kategória
-    <select class="form-control" id="kategoria" name="kategoria" required>
-        <option value="" selected hidden>Vyberte kategóriu</option>
-        <option th:each="kat : ${T(sk.tmconsulting.Eshop.KategoriaProduktu).values()}"
-                th:value="${kat}"
-                th:text="${kat.nazovKategorie}"></option>
-    </select><br>
+    <div class="form-group">
+        <label for="cena">Cena:</label>
+        <input class="form-control" id="cena" step="0.1" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
+        <div class="error" th:if="${#fields.hasErrors('cena')}">
+            <p th:each="err : ${#fields.errors('cena')}" th:text="${err}"></p>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="farba">Farba:</label>
+        <input class="form-control" id="farba" placeholder="Zadajte farbu" th:field="*{farba}" type="text">
+        <div class="error" th:if="${#fields.hasErrors('farba')}">
+            <p th:each="err : ${#fields.errors('farba')}" th:text="${err}"></p>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="velkost">Veľkosť:</label>
+        <input class="form-control" id="velkost" placeholder="Zadajte veľkosť" th:field="*{velkost}" type="text">
+        <div class="error" th:if="${#fields.hasErrors('velkost')}">
+            <p th:each="err : ${#fields.errors('velkost')}" th:text="${err}"></p>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="kategoria">Kategória:</label>
+        <select class="form-control" id="kategoria" name="kategoria" required>
+            <option value="" selected hidden>Vyberte kategóriu</option>
+            <option th:each="kat : ${T(sk.tmconsulting.Eshop.KategoriaProduktu).values()}"
+                    th:value="${kat}"
+                    th:text="${kat.nazovKategorie}"></option>
+        </select>
+    </div>
 
     <button class="btn btn-primary" type="submit">Ulož záznam</button>
 </form>
 
-<br>
 <a href="/">Prejdi na hlavnú stránku</a>
+
 
 <script>
     function validateForm() {
