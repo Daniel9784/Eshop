@@ -72,6 +72,7 @@
   <tr>
     <th>Produkt ID</th>
     <th>Názov Produktu</th>
+    <th>kategória</th>
     <th>Farba</th>
     <th>Veľkosť</th>
     <th>Cena</th>
@@ -79,15 +80,17 @@
   </tr>
   </thead>
   <tbody>
-  <tr th:each="Tricko:${vsetkyZaznamy}">
-    <td th:text="${Tricko.produktID}"></td>
-    <td th:text="${Tricko.nazov}"></td>
-    <td th:text="${Tricko.farba}" th:style="'color:' + ${Tricko.farba}"></td>
-    <td th:text="${Tricko.velkost}"></td>
-    <td th:text="${Tricko.cena}"></td>
+  <tr th:each="Produkt:${vsetkyZaznamy}">
+    <td th:text="${Produkt.produktID}"></td>
+    <td th:text="${Produkt.nazov}"></td>
+    <td th:text="${Produkt.kategoria != null ? Produkt.kategoria.getNazovKategorie() : 'Neurčené'}"></td>
+    <td th:text="${Produkt.farba}" th:style="'color:' + ${Produkt.farba}"></td>
+    <td th:text="${Produkt.velkost}"></td>
+    <td th:text="${Produkt.cena}"></td>
     <td>
-      <a th:href="@{/uprav-zaznam/{id}(id=${Tricko.produktID})}">Uprav</a>
-      <a th:href="@{/vymaz-zaznam/{id}(id=${Tricko.produktID})}">Vymaž</a>
+      <a th:href="@{'/uprav-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Uprav</a>
+      <a th:href="@{'/vymaz-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Vymaž</a>
+
     </td>
   </tr>
   </tbody>

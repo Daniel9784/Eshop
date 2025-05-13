@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Controller
 public class TrickoController implements ErrorController {
@@ -25,7 +28,10 @@ public class TrickoController implements ErrorController {
 
     @GetMapping("/zobraz-vsetky-zaznamy")
     public String zobrazVsetkyZaznamy(Model model){
-        model.addAttribute("vsetkyZaznamy", trickoService.ziskajVsetkyTricka());
+        List<Produkt> vsetkyProdukty = new ArrayList<>();
+        vsetkyProdukty.addAll(trickoService.ziskajVsetkyTricka());
+        vsetkyProdukty.addAll(topankyService.ziskajVsetkyTopanky());
+        model.addAttribute("vsetkyZaznamy", vsetkyProdukty);
         return "zobraz-vsetky-zaznamy";
     }
     @GetMapping("/pridaj-zaznam")
@@ -35,43 +41,97 @@ public class TrickoController implements ErrorController {
     }
 
     @PostMapping("/uloz-zaznam")
-    public String ulozZaznam(@Valid @ModelAttribute ProduktForm produktForm, BindingResult bindingResult, Model model) {
+    public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produktForm,
+                             BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("pridajZaznam", produktForm);
-            return "pridaj-zaznam";
+            return "uprav-zaznam";
         }
+        if (produktForm.getProduktID() != 0) {
+            Tricko existingTricko = trickoService.ziskajTrickoPodlaID(produktForm.getProduktID());
+            Topanky existingTopanky = topankyService.ziskajTopankyPodlaID(produktForm.getProduktID());
 
-        if (produktForm.getKategoria() == KategoriaProduktu.TRICKO) {
-            Tricko tricko = new Tricko();
-            tricko.setNazov(produktForm.getNazov());
-            tricko.setFarba(produktForm.getFarba());
-            tricko.setVelkost(produktForm.getVelkost());
-            tricko.setCena(produktForm.getCena());
-            trickoService.ulozTricko(tricko);
-        } else if (produktForm.getKategoria() == KategoriaProduktu.TOPANKY) {
-            Topanky topanky = new Topanky();
-            topanky.setNazov(produktForm.getNazov());
-            topanky.setFarba(produktForm.getFarba());
-            topanky.setVelkost(produktForm.getVelkost());
-            topanky.setCena(produktForm.getCena());
-            topankyService.ulozTopanky(topanky);
+            // Pri zmene kategorii sa zmaze produkt zo starej a vytvori znova
+            if (produktForm.getKategoria() == KategoriaProduktu.TRICKO) {
+                if (existingTopanky != null) {
+                    // Z topanky na tricko zmena
+                    topankyService.odstranTopankyPodlaID(produktForm.getProduktID());
+                    Tricko noveTricko = new Tricko();
+                    copyProduktFormToEntity(produktForm, noveTricko);
+                    trickoService.ulozTricko(noveTricko);
+                } else if (existingTricko != null) {
+                    // Update pre tricko
+                    copyProduktFormToEntity(produktForm, existingTricko);
+                    trickoService.ulozTricko(existingTricko);
+                }
+            } else if (produktForm.getKategoria() == KategoriaProduktu.TOPANKY) {
+                if (existingTricko != null) {
+                    // Z tricka na topanky zmena
+                    trickoService.odstranTrickoPodlaID(produktForm.getProduktID());
+                    Topanky noveTopanky = new Topanky();
+                    copyProduktFormToEntity(produktForm, noveTopanky);
+                    topankyService.ulozTopanky(noveTopanky);
+                } else if (existingTopanky != null) {
+                    //Updatne topanky
+                    copyProduktFormToEntity(produktForm, existingTopanky);
+                    topankyService.ulozTopanky(existingTopanky);
+                }
+            }
+        } else {
+            // Vyvara novy produkt
+            if (produktForm.getKategoria() == KategoriaProduktu.TRICKO) {
+                Tricko tricko = new Tricko();
+                copyProduktFormToEntity(produktForm, tricko);
+                trickoService.ulozTricko(tricko);
+            } else if (produktForm.getKategoria() == KategoriaProduktu.TOPANKY) {
+                Topanky topanky = new Topanky();
+                copyProduktFormToEntity(produktForm, topanky);
+                topankyService.ulozTopanky(topanky);
+            }
         }
 
         return "redirect:/zobraz-vsetky-zaznamy";
     }
 
-    @GetMapping("/uprav-zaznam/{id}")
-    public String upravZaznam(@PathVariable("id") long id, Model model) {
-        Tricko tricko = trickoService.ziskajTrickoPodlaID(id);
-        model.addAttribute("upravZaznam", tricko);
+    // Helper method to copy form data to entity
+    private void copyProduktFormToEntity(ProduktForm form, Produkt entity) {
+        entity.setNazov(form.getNazov());
+        entity.setFarba(form.getFarba());
+        entity.setVelkost(form.getVelkost());
+        entity.setCena(form.getCena());
+        entity.setKategoria(form.getKategoria());
+    }
+
+    @GetMapping("/uprav-zaznam/{kategoria}/{id}")
+    public String upravZaznam(@PathVariable("kategoria") String kategoria,
+                              @PathVariable("id") long id, Model model) {
+        Produkt produkt = null;
+
+        if ("tricko".equalsIgnoreCase(kategoria)) {
+            produkt = trickoService.ziskajTrickoPodlaID(id);
+        } else if ("topanky".equalsIgnoreCase(kategoria)) {
+            produkt = topankyService.ziskajTopankyPodlaID(id);
+        }
+
+        if (produkt == null) {
+            return "redirect:/error";
+        }
+
+        model.addAttribute("upravZaznam", produkt);
         return "uprav-zaznam";
     }
 
-    @GetMapping("/vymaz-zaznam/{id}")
-    public String vymazZaznam(@PathVariable("id") long id) {
-        trickoService.odstranTrickoPodlaID(id);
+
+
+    @GetMapping("/vymaz-zaznam/{kategoria}/{id}")
+    public String vymazZaznam(@PathVariable String kategoria, @PathVariable Long id) {
+        if ("tricko".equalsIgnoreCase(kategoria)) {
+            trickoService.odstranTrickoPodlaID(id);
+        } else if ("topanky".equalsIgnoreCase(kategoria)) {
+            topankyService.odstranTopankyPodlaID(id);
+        }
         return "redirect:/zobraz-vsetky-zaznamy";
     }
+
 
     @RequestMapping("/error") // adresa pre stranku 404, zobrazi sa vtedy, ked nie je podstranka (uri) najdena
     public String zobrazChybovuStranku() {

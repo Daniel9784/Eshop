@@ -24,7 +24,8 @@ public class TopankyService {
         topankyRepository.deleteById(id);
     }
     public Topanky ziskajTopankyPodlaID(long id){
-        return topankyRepository.findById(id).get();
+        return topankyRepository.findById(id).orElse(null);
     }
+
 
 }

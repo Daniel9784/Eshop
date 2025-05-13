@@ -24,7 +24,7 @@ public class TrickoService {
         trickoRepository.deleteById(id);
     }
     public Tricko ziskajTrickoPodlaID(long id){
-        return trickoRepository.findById(id).get();
+        return trickoRepository.findById(id).orElse(null);
     }
 
 }
