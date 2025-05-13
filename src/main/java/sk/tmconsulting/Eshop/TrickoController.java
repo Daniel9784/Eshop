@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
@@ -15,6 +14,9 @@ public class TrickoController implements ErrorController {
 
     @Autowired
     private TrickoService trickoService;
+
+    @Autowired
+    private TopankyService topankyService;
 
     @GetMapping("/")
     public String uvodnaStranka(){
@@ -33,17 +35,28 @@ public class TrickoController implements ErrorController {
     }
 
     @PostMapping("/uloz-zaznam")
-    public String ulozZaznam(@Valid @ModelAttribute Tricko tricko, BindingResult bindingResult, Model model) {
+    public String ulozZaznam(@Valid @ModelAttribute ProduktForm produktForm, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
-            if (tricko.getProduktID() == 0) {
-                model.addAttribute("pridajZaznam", tricko);
-                return "pridaj-zaznam";
-            } else {
-                model.addAttribute("upravZaznam", tricko);
-                return "uprav-zaznam";
-            }
+            model.addAttribute("pridajZaznam", produktForm);
+            return "pridaj-zaznam";
         }
-        trickoService.ulozTricko(tricko);
+
+        if (produktForm.getKategoria() == KategoriaProduktu.TRICKO) {
+            Tricko tricko = new Tricko();
+            tricko.setNazov(produktForm.getNazov());
+            tricko.setFarba(produktForm.getFarba());
+            tricko.setVelkost(produktForm.getVelkost());
+            tricko.setCena(produktForm.getCena());
+            trickoService.ulozTricko(tricko);
+        } else if (produktForm.getKategoria() == KategoriaProduktu.TOPANKY) {
+            Topanky topanky = new Topanky();
+            topanky.setNazov(produktForm.getNazov());
+            topanky.setFarba(produktForm.getFarba());
+            topanky.setVelkost(produktForm.getVelkost());
+            topanky.setCena(produktForm.getCena());
+            topankyService.ulozTopanky(topanky);
+        }
+
         return "redirect:/zobraz-vsetky-zaznamy";
     }
 

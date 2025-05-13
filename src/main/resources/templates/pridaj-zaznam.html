@@ -87,6 +87,17 @@ form {
     </div>
     <br><br>
 
+    <label for="kategoria">Kategória:</label>
+    <select id="kategoria" th:field="*{kategoria}">
+        <option value="">-- Vyber kategóriu --</option>
+        <option value="TRICKO">Tričko</option>
+        <option value="TOPANKY">Topánky</option>
+    </select>
+    <div class="error" th:if="${#fields.hasErrors('kategoria')}">
+        <p th:each="err : ${#fields.errors('kategoria')}" th:text="${err}"></p>
+    </div>
+    <br><br>
+
     <button class="btn btn-primary" type="submit">Ulož záznam</button>
 </form>
 

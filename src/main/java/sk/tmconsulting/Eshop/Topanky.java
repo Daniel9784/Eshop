@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 
 
 @Entity
-public class Tricko {
+public class Topanky {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)  //nastavi ako primarny kluc a zaroven inkrementuje hodnotu +1
     private long produktID;
