@@ -7,6 +7,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
+import sk.tmconsulting.Eshop.DataTransfer.ProduktForm;
+import sk.tmconsulting.Eshop.Products.Nohavice;
+import sk.tmconsulting.Eshop.Products.Produkt;
+import sk.tmconsulting.Eshop.Products.Topanky;
+import sk.tmconsulting.Eshop.Products.Tricko;
+import sk.tmconsulting.Eshop.ProductsServices.NohaviceService;
+import sk.tmconsulting.Eshop.ProductsServices.TopankyService;
+import sk.tmconsulting.Eshop.ProductsServices.TrickoService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +141,7 @@ public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produ
     return "redirect:/zobraz-vsetky-zaznamy";
 }
 
-    // Helper method to copy form data to entity
+    // Pomocna metoda na kopirovanie dat z produkt form do entity
     private void copyProduktFormToEntity(ProduktForm form, Produkt entity) {
         entity.setNazov(form.getNazov());
         entity.setFarba(form.getFarba());

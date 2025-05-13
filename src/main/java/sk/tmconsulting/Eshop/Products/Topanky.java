@@ -1,4 +1,4 @@
-package sk.tmconsulting.Eshop;
+package sk.tmconsulting.Eshop.Products;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,7 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class Tricko extends Produkt {
+public class Topanky extends Produkt {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

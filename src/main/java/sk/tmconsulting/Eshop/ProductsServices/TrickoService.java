@@ -1,7 +1,9 @@
-package sk.tmconsulting.Eshop;
+package sk.tmconsulting.Eshop.ProductsServices;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import sk.tmconsulting.Eshop.Products.Tricko;
+import sk.tmconsulting.Eshop.ProductsRepository.TrickoRepository;
 
 import java.util.List;
 

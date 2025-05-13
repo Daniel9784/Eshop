@@ -1,9 +1,12 @@
-package sk.tmconsulting.Eshop;
+package sk.tmconsulting.Eshop.Products;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import sk.tmconsulting.Eshop.KategoriaProduktu;
 
-public class ProduktForm {
+@MappedSuperclass
+public abstract class Produkt {
 
     @NotBlank(message = "Názov je povinný.")
     private String nazov;
@@ -17,19 +20,11 @@ public class ProduktForm {
     @NotBlank(message = "Veľkosť je povinná.")
     private String velkost;
 
+    @Enumerated(EnumType.STRING)
     private KategoriaProduktu kategoria;
 
-    private long produktID;
 
-    // Getters a Setters
-    public long getProduktID() {
-        return produktID;
-    }
-
-    public void setProduktID(long produktID) {
-        this.produktID = produktID;
-    }
-
+    // Gettery a settery
     public String getNazov() {
         return nazov;
     }
