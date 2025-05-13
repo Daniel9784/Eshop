@@ -4,16 +4,60 @@
     <meta charset="UTF-8">
     <title>Pridaj záznam</title>
     <style>
+        /* Errory */
         .error {
             color: red;
             margin-bottom: 5px;
             font-weight: bold;
         }
+
         input.error-placeholder::placeholder {
             color: red;
         }
+
         input.error-price {
             border: 2px solid red;
+        }
+
+       /* Centrovanie stranky*/
+body {
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    text-align: center;
+}
+
+form {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+
+}
+
+        button {
+            margin-top: 20px;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #fcbf49;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -27,7 +71,7 @@
         <p th:each="err : ${#fields.errors('nazov')}" th:text="${err}"></p>
     </div><br><br>
 
-   Cena <input class="form-control" id="cena" step="0.1" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
+    Cena <input class="form-control" id="cena" step="0.1" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
     <div class="error" th:if="${#fields.hasErrors('cena')}">
         <p th:each="err : ${#fields.errors('cena')}" th:text="${err}"></p>
     </div><br><br>

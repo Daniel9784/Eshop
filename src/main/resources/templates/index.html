@@ -3,11 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <title>E-shop Tričká</title>
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      color: #333;
+      margin-top: 40px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #fcbf49;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #fd7e14;
+    }
+
+    .btn:active {
+      background-color: #fcbf49;
+    }
+
+    .login-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Hlavná stránka | E-shop Tričká</h1>
-  <a href="/pridaj-zaznam">Pridaj záznam</a>
-  <br> <!-- novy riadok -->
-  <a href="/zobraz-vsetky-zaznamy">Zobraz všetky záznamy</a>
+
+<a href="/login" class="btn login-btn">Prihlásenie</a>
+
+<h1>Hlavná stránka | E-shop Tričká</h1>
+
+<a href="/pridaj-zaznam" class="btn">Pridaj záznam</a>
+<br>
+<a href="/zobraz-vsetky-zaznamy" class="btn">Zobraz všetky záznamy</a>
+
 </body>
 </html>

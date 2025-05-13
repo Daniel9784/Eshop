@@ -2,35 +2,97 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Zoznam produktov<</title>
+  <title>Zoznam produktov</title>
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 40px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    table {
+      width: 90%;
+      max-width: 800px;
+      border-collapse: collapse;
+      background-color: #f9f9f9;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #eaeaea;
+      font-weight: bold;
+    }
+
+    td a {
+      margin: 0 5px;
+      color: #fd7e14;
+      text-decoration: none;
+    }
+
+    td a:hover {
+      text-decoration: underline;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      color: #fcbf49;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
 <h1>Zoznam produktov</h1>
-<table border="1"> <!-- Poznamka v HTML - vytvorili sme tabulku -->
-  <thead> <!-- Hlavicka tabulky -->
-  <tr> <!-- vytvorili sme riadok, ZACIATOK riadka -->
-    <th>Produkt ID</th> <!-- th reprezentuje bunku daneho riadka -->
+
+<table>
+  <thead>
+  <tr>
+    <th>Produkt ID</th>
     <th>Názov Produktu</th>
-    <th>Farba</th> <!-- th reprezentuje bunku daneho riadka -->
-    <th>Veľkosť</th> <!-- th reprezentuje bunku daneho riadka -->
-    <th>Cena</th> <!-- th reprezentuje bunku daneho riadka -->
-  </tr> <!-- vytvorili sme riadok, KONIEC riadka -->
-  </thead> <!-- Koniec hlavicky tabulky -->
+    <th>Farba</th>
+    <th>Veľkosť</th>
+    <th>Cena</th>
+    <th>Akcie</th>
+  </tr>
+  </thead>
   <tbody>
-  <tr th:each="Tricko:${vsetkyZaznamy}"> <!-- foreach podobne ako v Jave, ale tu prostrednictvom thymeleaf -->
-    <td th:text="${Tricko.produktID}"></td> <!-- popis je ten isty popis, ktory najdeme ako premennu (field) v triede, kt. reprezentuje model -->
+  <tr th:each="Tricko:${vsetkyZaznamy}">
+    <td th:text="${Tricko.produktID}"></td>
     <td th:text="${Tricko.nazov}"></td>
     <td th:text="${Tricko.farba}" th:style="'color:' + ${Tricko.farba}"></td>
-    <td th:text="${Tricko.velkost}"></td> <!-- rovnako aj pre kategoria -->
-    <td th:text="${Tricko.cena}"></td> <!-- rovnako aj pre datum -->
+    <td th:text="${Tricko.velkost}"></td>
+    <td th:text="${Tricko.cena}"></td>
     <td>
-      <a th:href="@{/uprav-zaznam/{id}(id=${Tricko.produktID})}">Uprav záznam</a>
-      <a th:href="@{/vymaz-zaznam/{id}(id=${Tricko.produktID})}">Vymaž záznam</a>
+      <a th:href="@{/uprav-zaznam/{id}(id=${Tricko.produktID})}">Uprav</a>
+      <a th:href="@{/vymaz-zaznam/{id}(id=${Tricko.produktID})}">Vymaž</a>
     </td>
   </tr>
   </tbody>
 </table>
-<br>
+
 <a href="/">Prejdi na hlavnú stránku</a>
 </body>
 </html>
