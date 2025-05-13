@@ -20,6 +20,9 @@ public abstract class Produkt {
     @NotBlank(message = "Veľkosť je povinná.")
     private String velkost;
 
+    @Positive(message = "Počet je povinný.")
+    private int pocet;
+
     @Enumerated(EnumType.STRING)
     private KategoriaProduktu kategoria;
 
@@ -63,5 +66,13 @@ public abstract class Produkt {
 
     public void setKategoria(KategoriaProduktu kategoria) {
         this.kategoria = kategoria;
+    }
+
+    public int getPocet() {
+        return pocet;
+    }
+
+    public void setPocet(int pocet) {
+        this.pocet = pocet;
     }
 }

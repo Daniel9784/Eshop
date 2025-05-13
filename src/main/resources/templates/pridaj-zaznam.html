@@ -97,7 +97,7 @@
 
     <div class="form-group">
         <label for="cena">Cena:</label>
-        <input class="form-control" id="cena" step="0.1" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
+        <input class="form-control" id="cena" step="0.01" min="0" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
         <div class="error" th:if="${#fields.hasErrors('cena')}">
             <p th:each="err : ${#fields.errors('cena')}" th:text="${err}"></p>
         </div>
@@ -128,6 +128,14 @@
                     th:text="${kat.nazovKategorie}"></option>
         </select>
     </div>
+        <div class="form-group">
+            <label for="cena">Počet:</label>
+            <input class="form-control" id="pocet" min="0" th:field="*{pocet}" placeholder="Zadajte počet" type="number">
+            <div class="error" th:if="${#fields.hasErrors('pocet')}">
+                <p th:each="err : ${#fields.errors('pocet')}" th:text="${err}"></p>
+            </div>
+        </div>
+
 
     <button class="btn btn-primary" type="submit">Ulož záznam</button>
 </form>
@@ -137,34 +145,61 @@
 
 <script>
     function validateForm() {
-        let form = document.querySelector('form');
-        let inputs = form.querySelectorAll('input');
-        let isValid = true;
+       let form = document.querySelector('form');
+       let inputs = form.querySelectorAll('input');
+       let isValid = true;
 
-        inputs.forEach(input => {
+       inputs.forEach(input => {
+           if (input.type === "hidden") return;
 
-            if (!input.value || (input.id === "cena" && /^0(\.0+)?$/.test(input.value))) {
-                input.classList.add('error-placeholder');
-                if (input.id === "cena") {
-                    input.classList.add('error-price');
-                }
-                isValid = false;
-            } else {
-                input.classList.remove('error-placeholder');
-                if (input.id === "cena") {
-                    input.classList.remove('error-price');
-                }
-            }
-        });
+           if (!input.value) {
+               input.classList.add('error-placeholder');
+               isValid = false;
+           } else {
+               input.classList.remove('error-placeholder');
 
-        return isValid;
-    }
+               // Validácia pre cenu
+               if (input.id === "cena") {
+                   const cena = parseFloat(input.value);
+                   if (cena <= 0) {
+                       input.classList.add('error-price');
+                       isValid = false;
+                   } else {
+                       input.classList.remove('error-price');
+                   }
+               }
 
-    document.getElementById("cena").addEventListener("input", function () {
-        if (this.value && !/^0(\.0+)?$/.test(this.value)) {
-            this.classList.remove('error-price');
-        }
-    });
+               // Validácia pre počet
+               if (input.id === "pocet") {
+                   const pocet = parseInt(input.value);
+                   if (pocet <= 0 || !Number.isInteger(pocet)) {
+                       input.classList.add('error-price');
+                       isValid = false;
+                   } else {
+                       input.classList.remove('error-price');
+                   }
+               }
+           }
+       });
+
+       return isValid;
+   }
+
+   // Pridáme event listener pre cenu
+   document.getElementById("cena").addEventListener("input", function() {
+       const cena = parseFloat(this.value);
+       if (cena > 0) {
+           this.classList.remove('error-price');
+       }
+   });
+
+   // Pridáme event listener pre počet
+   document.getElementById("pocet").addEventListener("input", function() {
+       const pocet = parseInt(this.value);
+       if (pocet > 0 && Number.isInteger(pocet)) {
+           this.classList.remove('error-price');
+       }
+   });
 </script>
 </body>
 </html>

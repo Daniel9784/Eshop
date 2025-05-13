@@ -148,6 +148,7 @@ public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produ
         entity.setVelkost(form.getVelkost());
         entity.setCena(form.getCena());
         entity.setKategoria(form.getKategoria());
+        entity.setPocet(form.getPocet());
     }
 
     @GetMapping("/uprav-zaznam/{kategoria}/{id}")

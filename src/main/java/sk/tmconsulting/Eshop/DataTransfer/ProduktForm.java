@@ -18,6 +18,9 @@ public class ProduktForm {
     @NotBlank(message = "Veľkosť je povinná.")
     private String velkost;
 
+    @Positive(message = "Počet je povinný.")
+    private int pocet;
+
     private KategoriaProduktu kategoria;
 
     private long produktID;
@@ -69,5 +72,14 @@ public class ProduktForm {
 
     public void setKategoria(KategoriaProduktu kategoria) {
         this.kategoria = kategoria;
+    }
+
+    public int getPocet() {
+        return pocet;
+    }
+
+    public void setPocet(int pocet) {
+        this.pocet = pocet;
+
     }
 }

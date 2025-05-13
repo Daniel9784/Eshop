@@ -24,7 +24,7 @@
 
     table {
       width: 90%;
-      max-width: 800px;
+      max-width: 1000px;
       border-collapse: collapse;
       background-color: #f9f9f9;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -35,6 +35,7 @@
     th, td {
       padding: 12px 15px;
       border: 1px solid #ccc;
+      white-space: nowrap;
     }
 
     th {
@@ -46,6 +47,7 @@
       margin: 0 5px;
       color: #fd7e14;
       text-decoration: none;
+      display: inline-block;
     }
 
     td a:hover {
@@ -76,6 +78,8 @@
     <th>Farba</th>
     <th>Veľkosť</th>
     <th>Cena</th>
+    <th>Počet</th>
+    <th>Súčet</th>
     <th>Akcie</th>
   </tr>
   </thead>
@@ -87,10 +91,11 @@
     <td th:text="${Produkt.farba}" th:style="'color:' + ${Produkt.farba}"></td>
     <td th:text="${Produkt.velkost}"></td>
     <td th:text="${Produkt.cena}"></td>
+    <td th:text="${Produkt.pocet}"></td>
+    <td th:text="${Produkt.cena * Produkt.pocet}"></td>
     <td>
       <a th:href="@{'/uprav-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Uprav</a>
       <a th:href="@{'/vymaz-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Vymaž</a>
-
     </td>
   </tr>
   </tbody>
