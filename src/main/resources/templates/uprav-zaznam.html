@@ -86,10 +86,10 @@ form {
 
     Kategória
     <select class="form-control" id="kategoria" th:field="*{kategoria}">
-        <option value="" disabled>Vyberte kategóriu</option>
+        <option value="" disabled selected>Vyberte kategóriu</option>
         <option th:each="kat : ${T(sk.tmconsulting.Eshop.KategoriaProduktu).values()}"
                 th:value="${kat}"
-                th:text="${kat}"></option>
+                th:text="${kat.nazovKategorie}"></option>
     </select>
     <div class="error" th:if="${#fields.hasErrors('kategoria')}">
         <p th:each="err : ${#fields.errors('kategoria')}" th:text="${err}"></p>

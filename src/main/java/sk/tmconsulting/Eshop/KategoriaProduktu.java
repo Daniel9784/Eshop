@@ -2,7 +2,8 @@ package sk.tmconsulting.Eshop;
 
 public enum KategoriaProduktu {
     TRICKO("Tričko"),
-    TOPANKY("Topánky");
+    TOPANKY("Topánky"),
+    NOHAVICE("Nohavice");
 
     private final String nazovKategorie;
 
