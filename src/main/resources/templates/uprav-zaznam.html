@@ -3,18 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <title>Záznam na úpravu</title>
+    <style>
+        .error {
+            color: red;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input.error-placeholder::placeholder {
+            color: red;
+        }
+        input.error-price {
+            border: 2px solid red;
+        }
+    </style>
 </head>
 <body class="mt-2 ml-2">
 <h1>Záznam na úpravu</h1>
-<form action="#" th:action="@{/uloz-zaznam}" th:object="${upravZaznam}" method="POST">
+<form action="#" th:action="@{/uloz-zaznam}" th:object="${upravZaznam}" method="POST" onsubmit="return validateForm()">
     <input th:field="*{produktID}" type="hidden">
-    Názov <input id="nazov" class="form-control" th:field="*{nazov}" type="text"><br>
-    Cena <input id="cena" class="form-control" th:field="*{cena}" type="number"><br>
-    Farba <input id="farba" class="form-control" th:field="*{farba}" type="text"><br>
-    Veľkosť<input id="velkost" class="form-control" th:field="*{velkost}" type="text"><br>
+
+    Názov <input class="form-control" id="nazov" placeholder="Zadajte názov" th:field="*{nazov}" type="text">
+    <div class="error" th:if="${#fields.hasErrors('nazov')}">
+        <p th:each="err : ${#fields.errors('nazov')}" th:text="${err}"></p>
+    </div><br><br>
+
+    Cena <input class="form-control" id="cena" step="0.1" th:field="*{cena}" placeholder="Zadajte cenu" type="number">
+    <div class="error" th:if="${#fields.hasErrors('cena')}">
+        <p th:each="err : ${#fields.errors('cena')}" th:text="${err}"></p>
+    </div><br><br>
+
+    Farba <input class="form-control" id="farba" placeholder="Zadajte farbu" th:field="*{farba}" type="text">
+    <div class="error" th:if="${#fields.hasErrors('farba')}">
+        <p th:each="err : ${#fields.errors('farba')}" th:text="${err}"></p>
+    </div><br><br>
+
+    Veľkosť <input class="form-control" id="velkost" placeholder="Zadajte veľkosť" th:field="*{velkost}" type="text">
+    <div class="error" th:if="${#fields.hasErrors('velkost')}">
+        <p th:each="err : ${#fields.errors('velkost')}" th:text="${err}"></p>
+    </div>
+    <br><br>
+
     <button type="submit" class="btn btn-primary">Aktualizuj záznam</button>
 </form>
+
 <br>
 <a href="/">Prejdi na hlavnú stránku</a>
+
+<script>
+    function validateForm() {
+        let form = document.querySelector('form');
+        let inputs = form.querySelectorAll('input');
+        let isValid = true;
+
+        inputs.forEach(input => {
+
+            if (!input.value || (input.id === "cena" && /^0(\.0+)?$/.test(input.value))) {
+                input.classList.add('error-placeholder');
+                if (input.id === "cena") {
+                    input.classList.add('error-price');
+                }
+                isValid = false;
+            } else {
+                input.classList.remove('error-placeholder');
+                if (input.id === "cena") {
+                    input.classList.remove('error-price');
+                }
+            }
+        });
+
+        return isValid;
+    }
+
+    document.getElementById("cena").addEventListener("input", function () {
+        if (this.value && !/^0(\.0+)?$/.test(this.value)) {
+            this.classList.remove('error-price');
+        }
+    });
+</script>
 </body>
 </html>

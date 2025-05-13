@@ -4,7 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindingResult;
+import jakarta.validation.Valid;
+
 
 @Controller
 public class TrickoController implements ErrorController {
@@ -29,9 +33,18 @@ public class TrickoController implements ErrorController {
     }
 
     @PostMapping("/uloz-zaznam")
-    public String ulozZaznam(@ModelAttribute Tricko tricko) {
+    public String ulozZaznam(@Valid @ModelAttribute Tricko tricko, BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            if (tricko.getProduktID() == 0) {
+                model.addAttribute("pridajZaznam", tricko);
+                return "pridaj-zaznam";
+            } else {
+                model.addAttribute("upravZaznam", tricko);
+                return "uprav-zaznam";
+            }
+        }
         trickoService.ulozTricko(tricko);
-        return "redirect:/";
+        return "redirect:/zobraz-vsetky-zaznamy";
     }
 
     @GetMapping("/uprav-zaznam/{id}")
