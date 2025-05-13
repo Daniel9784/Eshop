@@ -1,147 +1,165 @@
 package sk.tmconsulting.Eshop;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+
 import sk.tmconsulting.Eshop.DataTransfer.ProduktForm;
-import sk.tmconsulting.Eshop.Products.Nohavice;
-import sk.tmconsulting.Eshop.Products.Produkt;
-import sk.tmconsulting.Eshop.Products.Topanky;
-import sk.tmconsulting.Eshop.Products.Tricko;
-import sk.tmconsulting.Eshop.ProductsServices.NohaviceService;
-import sk.tmconsulting.Eshop.ProductsServices.TopankyService;
-import sk.tmconsulting.Eshop.ProductsServices.TrickoService;
+import sk.tmconsulting.Eshop.Products.*;
+import sk.tmconsulting.Eshop.ProductsServices.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
 
 @Controller
 public class ProduktController implements ErrorController {
+    private final Map<KategoriaProduktu, ProduktService<? extends Produkt>> serviceMap;
 
-    @Autowired
-    private TrickoService trickoService;
-
-    @Autowired
-    private TopankyService topankyService;
-
-    @Autowired
-    private NohaviceService nohaviceService;
-
+    // Mapa pre spajanie kazdeho typu produktu s prislusnou sluzbou
+    public ProduktController(
+            TrickoService trickoService,
+            TopankyService topankyService,
+            NohaviceService nohaviceService) {
+        serviceMap = new EnumMap<>(KategoriaProduktu.class);
+        serviceMap.put(KategoriaProduktu.TRICKO, trickoService);
+        serviceMap.put(KategoriaProduktu.TOPANKY, topankyService);
+        serviceMap.put(KategoriaProduktu.NOHAVICE, nohaviceService);
+    }
 
     @GetMapping("/")
-    public String uvodnaStranka(){
+    public String uvodnaStranka() {
         return "index";
     }
 
+    //Zobraz vsetky zaznamy (spaja vsetky produkty sluzieb do jedneho zoznamu)
     @GetMapping("/zobraz-vsetky-zaznamy")
     public String zobrazVsetkyZaznamy(Model model) {
         List<Produkt> vsetkyProdukty = new ArrayList<>();
-        vsetkyProdukty.addAll(trickoService.ziskajVsetkyTricka());
-        vsetkyProdukty.addAll(topankyService.ziskajVsetkyTopanky());
-        vsetkyProdukty.addAll(nohaviceService.ziskajVsetkyNohavice());
+        serviceMap.values().forEach(service ->
+                vsetkyProdukty.addAll(service.ziskajVsetkyProdukty())
+        );
         model.addAttribute("vsetkyZaznamy", vsetkyProdukty);
         return "zobraz-vsetky-zaznamy";
     }
+
+    //Pridaj zaznam
     @GetMapping("/pridaj-zaznam")
     public String pridajZaznam(Model model) {
-        model.addAttribute("pridajZaznam", new Tricko());
+        model.addAttribute("pridajZaznam", new ProduktForm());
         return "pridaj-zaznam";
     }
 
-@PostMapping("/uloz-zaznam")
-public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produktForm,
-                         BindingResult bindingResult, Model model) {
-    if (bindingResult.hasErrors()) {
+    //Uloz zaznam (spravuje validaciu, kontroluje ci formular neobsahuje chyby a hlada produkt v sluzbach, pri zmene kategorii zmaze stary produkt a vytvori novy)
+    @PostMapping("/uloz-zaznam")
+    public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produktForm,
+                             BindingResult bindingResult, Model model) {
+        if (bindingResult.hasErrors()) {
+            return "uprav-zaznam";
+        }
+
+        KategoriaProduktu novaKategoria = produktForm.getKategoria();
+        long produktId = produktForm.getProduktID();
+
+        if (produktId != 0) {
+            KategoriaProduktu aktualnaKategoria = null;
+            Produkt existujuciProdukt = null;
+
+            for (Map.Entry<KategoriaProduktu, ProduktService<? extends Produkt>> entry : serviceMap.entrySet()) {
+                Produkt produkt = entry.getValue().ziskajProduktPodlaID(produktId);
+                if (produkt != null) {
+                    aktualnaKategoria = entry.getKey();
+                    existujuciProdukt = produkt;
+                    break;
+                }
+            }
+
+            if (aktualnaKategoria != null && aktualnaKategoria != novaKategoria) {
+                try {
+                    // Pridanie  oneskorenia pred vymazaním
+                    Thread.sleep(500);
+
+                    serviceMap.get(aktualnaKategoria).odstranProduktPodlaID(produktId);
+
+                    // Pridanie  oneskorenie pred vytvorením noveho
+                    Thread.sleep(500);
+
+                    Produkt novyProdukt = vytvorProdukt(novaKategoria);
+                    copyProduktFormToEntity(produktForm, novyProdukt);
+                    ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            } else if (existujuciProdukt != null) {
+                copyProduktFormToEntity(produktForm, existujuciProdukt);
+                ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(existujuciProdukt);
+            }
+        } else {
+            Produkt novyProdukt = vytvorProdukt(novaKategoria);
+            copyProduktFormToEntity(produktForm, novyProdukt);
+            ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
+        }
+
+        return "redirect:/zobraz-vsetky-zaznamy";
+    }
+
+    // Uprav zaznam ziskava produkt podla kategorie a ID, pridava ho do model pre upravu
+    @GetMapping("/uprav-zaznam/{kategoria}/{id}")
+    public String upravZaznam(@PathVariable("kategoria") String kategoria,
+                              @PathVariable("id") long id, Model model) {
+        KategoriaProduktu kategoriaProduktu;
+        try {
+            kategoriaProduktu = KategoriaProduktu.valueOf(kategoria.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return "redirect:/error";
+        }
+
+        ProduktService<? extends Produkt> service = serviceMap.get(kategoriaProduktu);
+        if (service == null) {
+            return "redirect:/error";
+        }
+
+        Produkt produkt = service.ziskajProduktPodlaID(id);
+        if (produkt == null) {
+            return "redirect:/error";
+        }
+
+        model.addAttribute("upravZaznam", produkt);
         return "uprav-zaznam";
     }
-    
-    if (produktForm.getProduktID() != 0) {
-        Tricko existingTricko = trickoService.ziskajTrickoPodlaID(produktForm.getProduktID());
-        Topanky existingTopanky = topankyService.ziskajTopankyPodlaID(produktForm.getProduktID());
-        Nohavice existingNohavice = nohaviceService.ziskajNohavicePodlaID(produktForm.getProduktID());
 
-        // Pri zmene kategorii sa zmaze produkt zo starej a vytvori znova
-        if (produktForm.getKategoria() == KategoriaProduktu.TRICKO) {
-            if (existingTopanky != null) {
-                // Z topanky na tricko zmena
-                topankyService.odstranTopankyPodlaID(produktForm.getProduktID());
-                Tricko noveTricko = new Tricko();
-                copyProduktFormToEntity(produktForm, noveTricko);
-                trickoService.ulozTricko(noveTricko);
-            } else if (existingNohavice != null) {
-                // Z nohavic na tricko zmena
-                nohaviceService.odstranNohavicePodlaID(produktForm.getProduktID());
-                Tricko noveTricko = new Tricko();
-                copyProduktFormToEntity(produktForm, noveTricko);
-                trickoService.ulozTricko(noveTricko);
-            } else if (existingTricko != null) {
-                // Update pre tricko
-                copyProduktFormToEntity(produktForm, existingTricko);
-                trickoService.ulozTricko(existingTricko);
+    //Vymaze zaznam ziskava produkt podla kategorie a ID, vymaze ho z databazy
+    @GetMapping("/vymaz-zaznam/{kategoria}/{id}")
+    public String vymazZaznam(@PathVariable String kategoria, @PathVariable Long id) {
+        try {
+            KategoriaProduktu kategoriaProduktu = KategoriaProduktu.valueOf(kategoria.toUpperCase());
+            ProduktService<? extends Produkt> service = serviceMap.get(kategoriaProduktu);
+            if (service != null) {
+                service.odstranProduktPodlaID(id);
             }
-        } else if (produktForm.getKategoria() == KategoriaProduktu.TOPANKY) {
-            if (existingTricko != null) {
-                // Z tricka na topanky zmena
-                trickoService.odstranTrickoPodlaID(produktForm.getProduktID());
-                Topanky noveTopanky = new Topanky();
-                copyProduktFormToEntity(produktForm, noveTopanky);
-                topankyService.ulozTopanky(noveTopanky);
-            } else if (existingNohavice != null) {
-                // Z nohavic na topanky zmena
-                nohaviceService.odstranNohavicePodlaID(produktForm.getProduktID());
-                Topanky noveTopanky = new Topanky();
-                copyProduktFormToEntity(produktForm, noveTopanky);
-                topankyService.ulozTopanky(noveTopanky);
-            } else if (existingTopanky != null) {
-                // Update pre topanky
-                copyProduktFormToEntity(produktForm, existingTopanky);
-                topankyService.ulozTopanky(existingTopanky);
-            }
-        } else if (produktForm.getKategoria() == KategoriaProduktu.NOHAVICE) {
-            if (existingTricko != null) {
-                // Z tricka na nohavice zmena
-                trickoService.odstranTrickoPodlaID(produktForm.getProduktID());
-                Nohavice noveNohavice = new Nohavice();
-                copyProduktFormToEntity(produktForm, noveNohavice);
-                nohaviceService.ulozNohavice(noveNohavice);
-            } else if (existingTopanky != null) {
-                // Z topanok na nohavice zmena
-                topankyService.odstranTopankyPodlaID(produktForm.getProduktID());
-                Nohavice noveNohavice = new Nohavice();
-                copyProduktFormToEntity(produktForm, noveNohavice);
-                nohaviceService.ulozNohavice(noveNohavice);
-            } else if (existingNohavice != null) {
-                // Update pre nohavice
-                copyProduktFormToEntity(produktForm, existingNohavice);
-                nohaviceService.ulozNohavice(existingNohavice);
-            }
+        } catch (IllegalArgumentException e) {
+            return "redirect:/error";
         }
-    } else {
-        // Vytvara novy produkt
-        if (produktForm.getKategoria() == KategoriaProduktu.TRICKO) {
-            Tricko tricko = new Tricko();
-            copyProduktFormToEntity(produktForm, tricko);
-            trickoService.ulozTricko(tricko);
-        } else if (produktForm.getKategoria() == KategoriaProduktu.TOPANKY) {
-            Topanky topanky = new Topanky();
-            copyProduktFormToEntity(produktForm, topanky);
-            topankyService.ulozTopanky(topanky);
-        } else if (produktForm.getKategoria() == KategoriaProduktu.NOHAVICE) {
-            Nohavice nohavice = new Nohavice();
-            copyProduktFormToEntity(produktForm, nohavice);
-            nohaviceService.ulozNohavice(nohavice);
+
+        return "redirect:/zobraz-vsetky-zaznamy";
+    }
+
+    // Pomocna metoda vytvara produkt podla kategorie
+    private Produkt vytvorProdukt(KategoriaProduktu kategoria) {
+        switch (kategoria) {
+            case TRICKO:
+                return new Tricko();
+            case TOPANKY:
+                return new Topanky();
+            case NOHAVICE:
+                return new Nohavice();
+            default:
+                throw new IllegalArgumentException("Neznáma kategória produktu: " + kategoria);
         }
     }
 
-    return "redirect:/zobraz-vsetky-zaznamy";
-}
-
-    // Pomocna metoda na kopirovanie dat z produkt form do entity
+    // Pomocma metoda kopiruje data z formulara do entity
     private void copyProduktFormToEntity(ProduktForm form, Produkt entity) {
         entity.setNazov(form.getNazov());
         entity.setFarba(form.getFarba());
@@ -151,45 +169,8 @@ public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produ
         entity.setPocet(form.getPocet());
     }
 
-    @GetMapping("/uprav-zaznam/{kategoria}/{id}")
-    public String upravZaznam(@PathVariable("kategoria") String kategoria,
-                              @PathVariable("id") long id, Model model) {
-        Produkt produkt = null;
-
-        if ("tricko".equalsIgnoreCase(kategoria)) {
-            produkt = trickoService.ziskajTrickoPodlaID(id);
-        } else if ("topanky".equalsIgnoreCase(kategoria)) {
-            produkt = topankyService.ziskajTopankyPodlaID(id);
-        } else if ("nohavice".equalsIgnoreCase(kategoria)) {
-            produkt = nohaviceService.ziskajNohavicePodlaID(id);
-        }
-
-        if (produkt == null) {
-            return "redirect:/error";
-        }
-
-        model.addAttribute("upravZaznam", produkt);
-        return "uprav-zaznam";
-    }
-
-
-
-    @GetMapping("/vymaz-zaznam/{kategoria}/{id}")
-    public String vymazZaznam(@PathVariable String kategoria, @PathVariable Long id) {
-        if ("tricko".equalsIgnoreCase(kategoria)) {
-            trickoService.odstranTrickoPodlaID(id);
-        } else if ("topanky".equalsIgnoreCase(kategoria)) {
-            topankyService.odstranTopankyPodlaID(id);
-        } else if ("nohavice".equalsIgnoreCase(kategoria)) {
-            nohaviceService.odstranNohavicePodlaID(id);
-        }
-        return "redirect:/zobraz-vsetky-zaznamy";
-    }
-
-
-    @RequestMapping("/error") // adresa pre stranku 404, zobrazi sa vtedy, ked nie je podstranka (uri) najdena
+    @RequestMapping("/error")
     public String zobrazChybovuStranku() {
         return "zobraz-chybovu-stranku";
     }
-
 }

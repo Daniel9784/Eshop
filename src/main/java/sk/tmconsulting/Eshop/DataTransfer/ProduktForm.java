@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import sk.tmconsulting.Eshop.KategoriaProduktu;
 
+
+// Presuva data medzi frontendom a backendom a validuje ich
 public class ProduktForm {
 
     @NotBlank(message = "Názov je povinný.")

@@ -1,5 +1,6 @@
 package sk.tmconsulting.Eshop.ProductsServices;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sk.tmconsulting.Eshop.Products.Tricko;
@@ -8,25 +9,32 @@ import sk.tmconsulting.Eshop.ProductsRepository.TrickoRepository;
 import java.util.List;
 
 @Service
-public class TrickoService {
+public class TrickoService implements ProduktService<Tricko> {
     @Autowired
     private TrickoRepository trickoRepository;
 
-    public List<Tricko> ziskajVsetkyTricka() {
+    @Override
+    public List<Tricko> ziskajVsetkyProdukty() {
         return trickoRepository.findAll();
     }
 
-    public void ulozTricko(Tricko tricko){
+    @Override
+    public void ulozProdukt(Tricko tricko) {
         trickoRepository.save(tricko);
     }
-    public void aktualizujTricko(Tricko tricko){
-        trickoRepository.save(tricko);    // Aktualizacia tricka a jeho ukladanie z pohladu JPA je to iste
-    }
-    public void odstranTrickoPodlaID(long id){
-        trickoRepository.deleteById(id);
-    }
-    public Tricko ziskajTrickoPodlaID(long id){
-        return trickoRepository.findById(id).orElse(null);
+
+    @Override
+    public void aktualizujProdukt(Tricko tricko) {
+        trickoRepository.save(tricko);
     }
 
+    @Override
+    public void odstranProduktPodlaID(long id) {
+        trickoRepository.deleteById(id);
+    }
+
+    @Override
+    public Tricko ziskajProduktPodlaID(long id) {
+        return trickoRepository.findById(id).orElse(null);
+    }
 }
