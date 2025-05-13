@@ -44,7 +44,7 @@ public class ProduktController implements ErrorController {
         return "zobraz-vsetky-zaznamy";
     }
 
-    //Pridaj zaznam
+    //Pridaj zaznam formular
     @GetMapping("/pridaj-zaznam")
     public String pridajZaznam(Model model) {
         model.addAttribute("pridajZaznam", new ProduktForm());
@@ -55,6 +55,7 @@ public class ProduktController implements ErrorController {
     @PostMapping("/uloz-zaznam")
     public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produktForm,
                              BindingResult bindingResult, Model model) {
+        // Kontrola validacie formulara
         if (bindingResult.hasErrors()) {
             return "uprav-zaznam";
         }
@@ -62,10 +63,12 @@ public class ProduktController implements ErrorController {
         KategoriaProduktu novaKategoria = produktForm.getKategoria();
         long produktId = produktForm.getProduktID();
 
+        // Kontrola ci existuje produkt podla ID
         if (produktId != 0) {
             KategoriaProduktu aktualnaKategoria = null;
             Produkt existujuciProdukt = null;
 
+        // Prechadza vsetky sluzby a zisti ci produkt existuje
             for (Map.Entry<KategoriaProduktu, ProduktService<? extends Produkt>> entry : serviceMap.entrySet()) {
                 Produkt produkt = entry.getValue().ziskajProduktPodlaID(produktId);
                 if (produkt != null) {
@@ -74,7 +77,7 @@ public class ProduktController implements ErrorController {
                     break;
                 }
             }
-
+        // Zistuje existenciu produktu podla ID a zisti ci je to rovnaky produkt alebo je to novy produkt
             if (aktualnaKategoria != null && aktualnaKategoria != novaKategoria) {
                 try {
                     // Pridanie  oneskorenia pred vymazaním
@@ -91,10 +94,12 @@ public class ProduktController implements ErrorController {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
+                // Aktualizacia existujuceho produktu
             } else if (existujuciProdukt != null) {
                 copyProduktFormToEntity(produktForm, existujuciProdukt);
                 ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(existujuciProdukt);
             }
+            // Vytvorenie noveho produktu
         } else {
             Produkt novyProdukt = vytvorProdukt(novaKategoria);
             copyProduktFormToEntity(produktForm, novyProdukt);
@@ -108,23 +113,24 @@ public class ProduktController implements ErrorController {
     @GetMapping("/uprav-zaznam/{kategoria}/{id}")
     public String upravZaznam(@PathVariable("kategoria") String kategoria,
                               @PathVariable("id") long id, Model model) {
+    // Kontrola kategorie nacitanie a uprava existujuceho produktu
         KategoriaProduktu kategoriaProduktu;
         try {
             kategoriaProduktu = KategoriaProduktu.valueOf(kategoria.toUpperCase());
         } catch (IllegalArgumentException e) {
             return "redirect:/error";
         }
-
+        // Ziskanie sluzby pro danu kategoriu
         ProduktService<? extends Produkt> service = serviceMap.get(kategoriaProduktu);
         if (service == null) {
             return "redirect:/error";
         }
-
+        // Ziskanie produktu podla ID
         Produkt produkt = service.ziskajProduktPodlaID(id);
         if (produkt == null) {
             return "redirect:/error";
         }
-
+        // Pridanie produktu do modelu pre upravu
         model.addAttribute("upravZaznam", produkt);
         return "uprav-zaznam";
     }
