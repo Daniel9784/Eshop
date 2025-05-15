@@ -165,7 +165,7 @@ public class ProduktController implements ErrorController {
         }
     }
 
-    // Pomocma metoda kopiruje data z formulara do entity
+    // Pomocma metoda kopiruje data z formulara(produktform)  do entity produkt
     private void copyProduktFormToEntity(ProduktForm form, Produkt entity) {
         entity.setNazov(form.getNazov());
         entity.setFarba(form.getFarba());

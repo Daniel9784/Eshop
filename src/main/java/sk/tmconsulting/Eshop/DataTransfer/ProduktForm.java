@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Positive;
 import sk.tmconsulting.Eshop.KategoriaProduktu;
 
 
-// Presuva data medzi frontendom a backendom a validuje ich
+// Presuva data medzi frontendom a backendom a validuje ich. ProduktForm sluzi ako kontajner pre data z formulara
 public class ProduktForm {
 
     @NotBlank(message = "Názov je povinný.")
