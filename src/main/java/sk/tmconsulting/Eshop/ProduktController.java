@@ -1,6 +1,7 @@
 package sk.tmconsulting.Eshop;
 
 import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -28,12 +29,14 @@ public class ProduktController implements ErrorController {
         serviceMap.put(KategoriaProduktu.NOHAVICE, nohaviceService);
     }
 
+
     @GetMapping("/")
     public String uvodnaStranka() {
         return "index";
     }
 
     //Zobraz vsetky zaznamy (spaja vsetky produkty sluzieb do jedneho zoznamu)
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/zobraz-vsetky-zaznamy")
     public String zobrazVsetkyZaznamy(Model model) {
         List<Produkt> vsetkyProdukty = new ArrayList<>();
@@ -45,6 +48,7 @@ public class ProduktController implements ErrorController {
     }
 
     //Pridaj zaznam formular
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/pridaj-zaznam")
     public String pridajZaznam(Model model) {
         model.addAttribute("pridajZaznam", new ProduktForm());
@@ -52,6 +56,7 @@ public class ProduktController implements ErrorController {
     }
 
     //Uloz zaznam (spravuje validaciu, kontroluje ci formular neobsahuje chyby a hlada produkt v sluzbach, pri zmene kategorii zmaze stary produkt a vytvori novy)
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/uloz-zaznam")
     public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produktForm,
                              BindingResult bindingResult, Model model) {
@@ -105,11 +110,15 @@ public class ProduktController implements ErrorController {
             copyProduktFormToEntity(produktForm, novyProdukt);
             ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
         }
-
+        if (produktId != 0) {
         return "redirect:/zobraz-vsetky-zaznamy";
+        }else{
+            return "redirect:/";
+        }
     }
 
     // Uprav zaznam ziskava produkt podla kategorie a ID, pridava ho do model pre upravu
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/uprav-zaznam/{kategoria}/{id}")
     public String upravZaznam(@PathVariable("kategoria") String kategoria,
                               @PathVariable("id") long id, Model model) {
@@ -136,6 +145,7 @@ public class ProduktController implements ErrorController {
     }
 
     //Vymaze zaznam ziskava produkt podla kategorie a ID, vymaze ho z databazy
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/vymaz-zaznam/{kategoria}/{id}")
     public String vymazZaznam(@PathVariable String kategoria, @PathVariable Long id) {
         try {

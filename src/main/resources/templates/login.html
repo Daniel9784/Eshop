@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Prihlásenie</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+    }
+    .login-container {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        width: 300px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    input {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .button {
+        width: 100%;
+        padding: 10px;
+        background-color: #e67e22;
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    .button:hover {
+        background-color: #d35400;
+    }
+    .register-button {
+        background-color: #fcbf49;
+    }
+    .register-button:hover {
+        background-color: #fd7e14;
+    }
+  </style>
+</head>
+<body>
+<div class="login-container">
+  <h2>Prihlásenie</h2>
+  <form th:action="@{/login}" method="post">
+    <div class="form-group">
+      <label for="username">Používateľské meno:</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Heslo:</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit" class="button">Prihlásiť</button>
+  </form>
+  <a href="/register" class="button register-button">Registrovať sa</a>
+</div>
+</body>
+</html>

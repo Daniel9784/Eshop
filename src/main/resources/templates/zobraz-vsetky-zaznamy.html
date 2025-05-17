@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
   <meta charset="UTF-8">
   <title>Zoznam produktov</title>
@@ -64,6 +65,47 @@
     a:hover {
       text-decoration: underline;
     }
+    .modal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 300px;
+    text-align: center;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    margin: 0 10px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
   </style>
 </head>
 <body>
@@ -80,7 +122,7 @@
     <th>Cena</th>
     <th>Počet</th>
     <th>Súčet</th>
-    <th>Akcie</th>
+    <th sec:authorize="hasRole('ADMIN')">Akcie</th>
   </tr>
   </thead>
   <tbody>
@@ -93,14 +135,55 @@
     <td th:text="${Produkt.cena}"></td>
     <td th:text="${Produkt.pocet}"></td>
     <td th:text="${Produkt.cena * Produkt.pocet}"></td>
-    <td>
+    <td sec:authorize="hasRole('ADMIN')">
       <a th:href="@{'/uprav-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Uprav</a>
-      <a th:href="@{'/vymaz-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Vymaž</a>
+      <a href="#"
+         th:data-kategoria="${Produkt.kategoria}"
+         th:data-id="${Produkt.produktID}"
+         onclick="otvorModalVymazania(this.getAttribute('data-kategoria'), this.getAttribute('data-id'))">Vymaž</a>
     </td>
   </tr>
   </tbody>
 </table>
 
 <a href="/">Prejdi na hlavnú stránku</a>
+<!-- Modal -->
+<div id="deleteModal" class="modal">
+  <div class="modal-content">
+    <h3>Potvrdenie vymazania</h3>
+    <p>Naozaj chcete vymazať tento záznam?</p>
+    <div class="modal-buttons">
+      <button class="btn-delete" onclick="potvrditVymazanie()">Vymazať</button>
+      <button class="btn-cancel" onclick="zatvorModal()">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let urlNaVymazanie = '';
+
+  function otvorModalVymazania(kategoria, id) {
+      urlNaVymazanie = '/vymaz-zaznam/' + kategoria + '/' + id;
+      document.getElementById('deleteModal').style.display = 'block';
+  }
+
+  function zatvorModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+  }
+
+  function potvrditVymazanie() {
+      if (urlNaVymazanie) {
+          window.location.href = urlNaVymazanie;
+      }
+  }
+
+  // Zatvorenie modalu pri kliknutí mimo neho
+  window.onclick = function(event) {
+      const modal = document.getElementById('deleteModal');
+      if (event.target == modal) {
+          zatvorModal();
+      }
+  }
+</script>
 </body>
 </html>

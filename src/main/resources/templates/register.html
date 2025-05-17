@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Registrácia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .register-container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button {
+            width: 100%;
+            padding: 10px;
+            background-color: #e67e22;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .button:hover {
+            background-color: #d35400;
+        }
+        .login-button {
+            background-color: #fcbf49;
+        }
+        .login-button:hover {
+            background-color: #fd7e14;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+        .password-mismatch {
+            border-color: red !important;
+        }
+        .password-match {
+            border-color: green !important;
+        }
+
+    </style>
+</head>
+<body>
+<div class="register-container">
+    <h2>Registrácia</h2>
+    <div th:if="${error}" class="error" th:text="${error}"></div>
+    <form th:action="@{/register}" method="post" onsubmit="return validatePasswords()">
+        <div class="form-group">
+            <label for="username">Používateľské meno:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Heslo:</label>
+            <input type="password" id="password" name="password" required oninput="checkPasswords()">
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">Zopakujte heslo:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required oninput="checkPasswords()">
+        </div>
+        <div id="passwordError" class="error" style="display: none;">
+            Heslá sa nezhodujú!
+        </div>
+        <button type="submit" class="button">Registrovať</button>
+    </form>
+    <a href="/login" class="button login-button">Späť na prihlásenie</a>
+</div>
+
+<script>
+    function checkPasswords() {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const passwordError = document.getElementById('passwordError');
+
+        if (confirmPassword.value === '') {
+            passwordError.style.display = 'none';
+            confirmPassword.classList.remove('password-match', 'password-mismatch');
+            return;
+        }
+
+        if (password.value === confirmPassword.value) {
+            passwordError.style.display = 'none';
+            confirmPassword.classList.remove('password-mismatch');
+            confirmPassword.classList.add('password-match');
+        } else {
+            passwordError.style.display = 'block';
+            confirmPassword.classList.remove('password-match');
+            confirmPassword.classList.add('password-mismatch');
+        }
+    }
+
+    function validatePasswords() {
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        if (password.value !== confirmPassword.value) {
+            document.getElementById('passwordError').style.display = 'block';
+            return false;
+        }
+        return true;
+    }
+</script>
+</body>
+</html>
