@@ -11,8 +11,10 @@ import jakarta.validation.Valid;
 import sk.tmconsulting.Eshop.DataTransfer.ProduktForm;
 import sk.tmconsulting.Eshop.Products.*;
 import sk.tmconsulting.Eshop.ProductsServices.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class ProduktController implements ErrorController {
@@ -38,14 +40,29 @@ public class ProduktController implements ErrorController {
     //Zobraz vsetky zaznamy (spaja vsetky produkty sluzieb do jedneho zoznamu)
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping("/zobraz-vsetky-zaznamy")
-    public String zobrazVsetkyZaznamy(Model model) {
+    public String zobrazVsetkyZaznamy(Model model, Authentication authentication) {
         List<Produkt> vsetkyProdukty = new ArrayList<>();
-        serviceMap.values().forEach(service ->
-                vsetkyProdukty.addAll(service.ziskajVsetkyProdukty())
-        );
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        serviceMap.values().forEach(service -> {
+            List<? extends Produkt> produkty = service.ziskajVsetkyProdukty();
+            if (!isAdmin) {
+                // Pre bežného používateľa filtrujeme len jeho produkty
+                produkty = produkty.stream()
+                        .filter(p -> p.getCreatedBy() != null &&
+                                p.getCreatedBy().equals(authentication.getName()))
+                        .collect(Collectors.toList());
+            }
+            vsetkyProdukty.addAll(produkty);
+        });
+
         model.addAttribute("vsetkyZaznamy", vsetkyProdukty);
+        model.addAttribute("isAdmin", isAdmin);
         return "zobraz-vsetky-zaznamy";
     }
+
 
     //Pridaj zaznam formular
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
@@ -59,63 +76,80 @@ public class ProduktController implements ErrorController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/uloz-zaznam")
     public String ulozZaznam(@Valid @ModelAttribute("upravZaznam") ProduktForm produktForm,
-                             BindingResult bindingResult, Model model) {
+                             BindingResult bindingResult, Model model,
+                             Authentication authentication) {
+
         // Kontrola validacie formulara
         if (bindingResult.hasErrors()) {
-            return "uprav-zaznam";
-        }
+        return "uprav-zaznam";
+    }
 
-        KategoriaProduktu novaKategoria = produktForm.getKategoria();
-        long produktId = produktForm.getProduktID();
+    KategoriaProduktu novaKategoria = produktForm.getKategoria();
+    long produktId = produktForm.getProduktID();
 
         // Kontrola ci existuje produkt podla ID
         if (produktId != 0) {
-            KategoriaProduktu aktualnaKategoria = null;
-            Produkt existujuciProdukt = null;
+        KategoriaProduktu aktualnaKategoria = null;
+        Produkt existujuciProdukt = null;
 
-        // Prechadza vsetky sluzby a zisti ci produkt existuje
+            // Prechadza vsetky sluzby a zisti ci produkt existuje
             for (Map.Entry<KategoriaProduktu, ProduktService<? extends Produkt>> entry : serviceMap.entrySet()) {
-                Produkt produkt = entry.getValue().ziskajProduktPodlaID(produktId);
-                if (produkt != null) {
-                    aktualnaKategoria = entry.getKey();
-                    existujuciProdukt = produkt;
-                    break;
-                }
+            Produkt produkt = entry.getValue().ziskajProduktPodlaID(produktId);
+            if (produkt != null) {
+                aktualnaKategoria = entry.getKey();
+                existujuciProdukt = produkt;
+                break;
             }
-        // Zistuje existenciu produktu podla ID a zisti ci je to rovnaky produkt alebo je to novy produkt
+        }
+
+            // Zistuje existenciu produktu podla ID a zisti ci je to rovnaky produkt alebo je to novy produkt
             if (aktualnaKategoria != null && aktualnaKategoria != novaKategoria) {
-                try {
-                    // Pridanie  oneskorenia pred vymazaním
-                    Thread.sleep(500);
+            try {
+             // Pridanie oneskorenia pred vymazaním
+                Thread.sleep(500);
 
-                    serviceMap.get(aktualnaKategoria).odstranProduktPodlaID(produktId);
+            // Zachováme pôvodného vlastníka
+                String povodnyVlastnik = existujuciProdukt.getCreatedBy();
 
-                    // Pridanie  oneskorenie pred vytvorením noveho
-                    Thread.sleep(500);
+                serviceMap.get(aktualnaKategoria).odstranProduktPodlaID(produktId);
 
-                    Produkt novyProdukt = vytvorProdukt(novaKategoria);
-                    copyProduktFormToEntity(produktForm, novyProdukt);
-                    ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                // Aktualizacia existujuceho produktu
-            } else if (existujuciProdukt != null) {
-                copyProduktFormToEntity(produktForm, existujuciProdukt);
-                ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(existujuciProdukt);
+            // Pridanie oneskorenie pred vytvorením noveho
+                Thread.sleep(500);
+
+                Produkt novyProdukt = vytvorProdukt(novaKategoria);
+                copyProduktFormToEntity(produktForm, novyProdukt);
+
+                // Zachováme pôvodného vlastníka
+                novyProdukt.setCreatedBy(povodnyVlastnik);
+
+                ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-            // Vytvorenie noveho produktu
-        } else {
+        } else if (existujuciProdukt != null) {
+            copyProduktFormToEntity(produktForm, existujuciProdukt);
+
+             // Zachováme pôvodného vlastníka ak ho upravuje admin
+                if (!authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                existujuciProdukt.setCreatedBy(authentication.getName());
+            }
+            ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(existujuciProdukt);
+        }
+    } else {
+            // Vytvorenie nového produktu
             Produkt novyProdukt = vytvorProdukt(novaKategoria);
-            copyProduktFormToEntity(produktForm, novyProdukt);
-            ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
-        }
-        if (produktId != 0) {
-        return "redirect:/zobraz-vsetky-zaznamy";
-        }else{
-            return "redirect:/";
-        }
+        copyProduktFormToEntity(produktForm, novyProdukt);
+        novyProdukt.setCreatedBy(authentication.getName());
+        ((ProduktService<Produkt>) serviceMap.get(novaKategoria)).ulozProdukt(novyProdukt);
     }
+
+    if (produktId != 0) {
+        return "redirect:/zobraz-vsetky-zaznamy";
+    } else {
+        return "redirect:/";
+    }
+}
 
     // Uprav zaznam ziskava produkt podla kategorie a ID, pridava ho do model pre upravu
     @PreAuthorize("hasRole('ADMIN')")

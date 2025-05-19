@@ -26,8 +26,12 @@ public abstract class Produkt {
     @Enumerated(EnumType.STRING)
     private KategoriaProduktu kategoria;
 
+    private String createdBy;
+
+
 
     // Gettery a settery
+
     public String getNazov() {
         return nazov;
     }
@@ -74,5 +78,11 @@ public abstract class Produkt {
 
     public void setPocet(int pocet) {
         this.pocet = pocet;
+    }
+    public String getCreatedBy() {
+        return createdBy;
+    }
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
     }
 }

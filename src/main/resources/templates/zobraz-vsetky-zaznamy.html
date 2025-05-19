@@ -115,6 +115,7 @@
   <thead>
   <tr>
     <th>Produkt ID</th>
+    <th sec:authorize="hasRole('ADMIN')">Vytvoril</th>
     <th>Názov Produktu</th>
     <th>kategória</th>
     <th>Farba</th>
@@ -122,12 +123,13 @@
     <th>Cena</th>
     <th>Počet</th>
     <th>Súčet</th>
-    <th sec:authorize="hasRole('ADMIN')">Akcie</th>
+    <th>Akcie</th>
   </tr>
   </thead>
   <tbody>
   <tr th:each="Produkt:${vsetkyZaznamy}">
     <td th:text="${Produkt.produktID}"></td>
+    <td sec:authorize="hasRole('ADMIN')" th:text="${Produkt.createdBy}"></td>
     <td th:text="${Produkt.nazov}"></td>
     <td th:text="${Produkt.kategoria != null ? Produkt.kategoria.getNazovKategorie() : 'Neurčené'}"></td>
     <td th:text="${Produkt.farba}" th:style="'color:' + ${Produkt.farba}"></td>
@@ -135,7 +137,7 @@
     <td th:text="${Produkt.cena}"></td>
     <td th:text="${Produkt.pocet}"></td>
     <td th:text="${Produkt.cena * Produkt.pocet}"></td>
-    <td sec:authorize="hasRole('ADMIN')">
+    <td th:if="${#authorization.expression('hasRole(''ADMIN'')')} or ${Produkt.createdBy == #authentication.name}">
       <a th:href="@{'/uprav-zaznam/' + ${Produkt.kategoria} + '/' + ${Produkt.produktID}}">Uprav</a>
       <a href="#"
          th:data-kategoria="${Produkt.kategoria}"
